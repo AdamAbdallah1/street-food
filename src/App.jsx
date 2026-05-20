@@ -22,7 +22,7 @@ import ThemeToggle from "./components/ThemeToggle";
 
 const phone = "96176884818";
 const mapLink = "https://maps.app.goo.gl/xbshzPMtQXAxVaGw5";
-const menuUrl = "https://adamabdallah1.github.io/street-food/";
+const menuUrl = "https://cedarstech.info/demo/street-food/";
 const FAVORITES_KEY = "streetfood_saved_items";
 
 export default function App() {
