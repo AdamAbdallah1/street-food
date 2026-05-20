@@ -29,7 +29,7 @@ export default function ItemActions({ item, onAddToCart, onSavedChange }) {
     <div className="mt-4 flex items-center gap-2">
       <button
         onClick={toggleSaved}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs text-white/70 transition hover:bg-white hover:text-black"
+        className="btn-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs"
         aria-label="Save item"
       >
         {isSaved ? <FaHeart /> : <FaRegHeart />}
@@ -37,7 +37,7 @@ export default function ItemActions({ item, onAddToCart, onSavedChange }) {
 
       <button
         onClick={() => onAddToCart(item)}
-        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-black text-black transition hover:scale-[1.02] active:scale-95"
+        className="btn-primary flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs font-black transition active:scale-95"
       >
         <FaPlus className="text-[10px]" />
         Add / Order

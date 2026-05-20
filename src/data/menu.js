@@ -65,6 +65,7 @@ export const items = [
     name: "Street Food Baked Potato",
     price: "6.00",
     image: bakedPotato,
+    badge: "Best Seller",
     desc: "Potato mix with mozzarella & butter, coated with cheddar cheese topped with corn, chips & BBQ sauce.",
   },
   {
@@ -72,6 +73,7 @@ export const items = [
     name: "Chili Baked Potato 🌶️",
     price: "6.50",
     image: chiliBakedPotato,
+    badge: "Spicy",
     desc: "Potato mix with mozzarella & butter, jalapeños, coated with cheddar cheese topped with corn chips & BBQ sauce.",
   },
   {
@@ -86,6 +88,7 @@ export const items = [
     name: "Chicken Baked Potato",
     price: "6.75",
     image: chickenBakedPotato,
+    badge: "Popular",
     desc: "Potato mix with mozzarella & butter, chicken, coated with cheddar cheese topped with corn, chips & BBQ sauce.",
   },
   {
@@ -122,6 +125,7 @@ export const items = [
     name: "Cheese Chicken Fries",
     price: "6.25",
     image: cheeseChickenFries,
+    badge: "Popular",
     desc: "French fries topped with fried chicken pops glazed in sriracha-BBQ & melted cheddar cheese.",
   },
 
@@ -130,6 +134,7 @@ export const items = [
     name: "Sriracha-BBQ",
     price: "6.00",
     image: srirachaBbq,
+    badge: "Popular",
     desc: "10 pieces served with your choice of sauce-dip.",
   },
   {
@@ -137,6 +142,7 @@ export const items = [
     name: "Buffalo",
     price: "6.00",
     image: buffalo,
+    badge: "Spicy",
     desc: "10 pieces served with your choice of sauce-dip.",
   },
   {
@@ -166,6 +172,7 @@ export const items = [
     name: "Spicy Chicken Tenders 🌶️",
     price: "6.25",
     image: spicyChickenTenders,
+    badge: "Spicy",
     desc: "6 pieces served with your choice of sauce-dip.",
   },
 
@@ -189,6 +196,7 @@ export const items = [
     name: "Double Beef Burger",
     price: "7.50",
     image: doubleBeefBurger,
+    badge: "Best Seller",
     desc: "Double char-grilled beef patty laid on iceberg, grilled tomato & caramelized onions topped with burger sauce.",
   },
   {
@@ -210,6 +218,7 @@ export const items = [
     name: "CRAN-BRIE Burger",
     price: "7.25",
     image: cranBrieBurger,
+    badge: "New",
     desc: "180g char-grilled beef patty laid on mayo & rocket leaves topped with cranberry sauce & brie cheese.",
   },
 
@@ -232,6 +241,7 @@ export const items = [
     name: "Zinger Burger 🌶️",
     price: "7.00",
     image: zingerBurger,
+    badge: "Best Seller",
     desc: "Fried spicy crispy chicken laid on burger sauce, smoked turkey, iceberg & tomato topped with melted cheddar cheese.",
   },
   {
@@ -246,6 +256,7 @@ export const items = [
     name: "Buffalo Chicken",
     price: "6.75",
     image: buffaloChicken,
+    badge: "Spicy",
     desc: "Fried crispy chicken glazed in buffalo laid on mayo, iceberg, tomato & dill pickles topped with cheddar slice.",
   },
   {
@@ -274,6 +285,7 @@ export const items = [
     name: "CRAN-BRIE Chicken",
     price: "7.25",
     image: cranBrieChicken,
+    badge: "New",
     desc: "Fried crispy chicken laid on mayo & rocket leaves topped with cranberry sauce & brie cheese.",
   },
 
@@ -289,6 +301,7 @@ export const items = [
     name: "Chili Hotdog 🌶️",
     price: "5.75",
     image: chiliHotdog,
+    badge: "Spicy",
     desc: "Topped with cheddar cheese, ketchup, mustard, chips & jalapeños.",
   },
 
@@ -297,6 +310,7 @@ export const items = [
     name: "BBQ Chicken Boneless",
     price: "6.50",
     image: bbqChickenBoneless,
+    badge: "Popular",
     desc: "Crispy chicken tenders glazed in sriracha-BBQ, iceberg, dill pickles, honey mustard & chips.",
   },
   {
@@ -304,6 +318,7 @@ export const items = [
     name: "Buffalo Chicken Boneless 🌶️",
     price: "6.50",
     image: buffaloChickenBoneless,
+    badge: "Spicy",
     desc: "Crispy chicken tenders glazed in buffalo, iceberg, dill pickles, honey mustard & chips.",
   },
   {
@@ -311,6 +326,7 @@ export const items = [
     name: "Zinger Wrap 🌶️",
     price: "7.00",
     image: zingerWrap,
+    badge: "Best Seller",
     desc: "Spicy crispy chicken tenders, smoked turkey, iceberg, burger sauce, tomato & melted cheddar cheese.",
   },
 
