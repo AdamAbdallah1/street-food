@@ -8,12 +8,17 @@ import {
 } from "react-icons/fa";
 import logo from "./assets/streetfood-logo.jpg";
 import { categories, items } from "./data/menu";
+import OrderPanel from "./components/OrderPanel";
+import ItemActions from "./components/ItemActions";
+import BackToTop from "./components/BackToTop";
 
-const phone = "96176884818";
+const phone = "96181090757";
 const mapLink = "https://maps.app.goo.gl/xbshzPMtQXAxVaGw5";
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [cart, setCart] = useState([]);
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
 
   const featuredItem = items.find((item) => item.image) || items[0];
 
@@ -21,6 +26,24 @@ export default function App() {
     if (activeCategory === "All") return items;
     return items.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
+
+  function addToCart(item) {
+    setCart((current) => {
+      const exists = current.find((cartItem) => cartItem.name === item.name);
+
+      if (exists) {
+        return current.map((cartItem) =>
+          cartItem.name === item.name
+            ? { ...cartItem, qty: cartItem.qty + 1 }
+            : cartItem
+        );
+      }
+
+      return [...current, { ...item, qty: 1 }];
+    });
+
+    setIsOrderOpen(true);
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#060606] text-white">
@@ -57,13 +80,12 @@ export default function App() {
             </a>
           </div>
 
-          <a
-            href={`https://wa.me/${phone}`}
-            target="_blank"
+          <button
+            onClick={() => setIsOrderOpen(true)}
             className="shrink-0 rounded-full bg-white px-4 py-2 text-[11px] font-black text-black transition hover:scale-[1.03] active:scale-95 sm:text-xs"
           >
-            Order
-          </a>
+            Order {cart.length > 0 ? `(${cart.length})` : ""}
+          </button>
         </nav>
 
         <div className="relative z-10 mx-auto grid max-w-6xl gap-8 pt-9 sm:pt-12 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[0.98fr_1.02fr] lg:items-center lg:pt-0">
@@ -73,13 +95,9 @@ export default function App() {
             transition={{ duration: 0.65 }}
             className="text-center lg:text-left"
           >
-
             <h1 className="mx-auto max-w-[440px] text-[2.75rem] font-black uppercase leading-[0.86] tracking-[-0.075em] min-[380px]:text-[3.05rem] sm:text-6xl md:text-7xl lg:mx-0 lg:max-w-[560px] lg:text-[5.8rem]">
               Street
               <span className="block text-white/28">Food</span>
-              <span className="mt-2 block text-[0.25em] leading-none tracking-[0.3em] text-white/58">
-                Loaded Daily
-              </span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-md text-[13px] font-medium leading-6 text-white/56 sm:text-sm sm:leading-7 lg:mx-0">
@@ -158,11 +176,12 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    <MiniTag text="Cheddar" />
-                    <MiniTag text="Corn" />
-                    <MiniTag text="BBQ" />
-                  </div>
+                  <button
+                    onClick={() => addToCart(featuredItem)}
+                    className="mt-4 w-full rounded-full bg-white px-4 py-3 text-xs font-black text-black"
+                  >
+                    Add Signature To Order
+                  </button>
                 </div>
               </div>
             </div>
@@ -183,8 +202,7 @@ export default function App() {
             </div>
 
             <p className="max-w-md text-sm leading-6 text-white/48">
-              Food items use photos. Add-ons and sauces stay clean as compact
-              menu rows.
+              Save favorites, add items, then send the full order on WhatsApp.
             </p>
           </div>
 
@@ -209,9 +227,19 @@ export default function App() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredItems.map((item, index) =>
               item.image ? (
-                <FoodCard key={item.name} item={item} index={index} />
+                <FoodCard
+                  key={item.name}
+                  item={item}
+                  index={index}
+                  onAddToCart={addToCart}
+                />
               ) : (
-                <SimpleCard key={item.name} item={item} index={index} />
+                <SimpleCard
+                  key={item.name}
+                  item={item}
+                  index={index}
+                  onAddToCart={addToCart}
+                />
               )
             )}
           </div>
@@ -233,8 +261,7 @@ export default function App() {
             </h2>
 
             <p className="mt-4 text-sm leading-7 text-white/50">
-              Open the map, call directly, or send a WhatsApp message from the
-              same page.
+              Open the map, call directly, or send a WhatsApp order.
             </p>
 
             <div id="contact" className="mt-7 grid gap-3">
@@ -246,7 +273,7 @@ export default function App() {
               <ActionButton
                 href={`https://wa.me/${phone}`}
                 icon={<FaWhatsapp />}
-                title="Order on WhatsApp"
+                title="WhatsApp"
               />
               <ActionButton
                 href="tel:+96176884818"
@@ -269,11 +296,21 @@ export default function App() {
           />
         </div>
       </section>
+
+      <OrderPanel
+        phone={phone}
+        cart={cart}
+        setCart={setCart}
+        isOpen={isOrderOpen}
+        setIsOpen={setIsOrderOpen}
+      />
+
+      <BackToTop />
     </main>
   );
 }
 
-function FoodCard({ item, index }) {
+function FoodCard({ item, index, onAddToCart }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -308,12 +345,14 @@ function FoodCard({ item, index }) {
         <p className="mt-2 text-[13px] leading-6 text-white/47">
           {item.desc}
         </p>
+
+        <ItemActions item={item} onAddToCart={onAddToCart} />
       </div>
     </motion.article>
   );
 }
 
-function SimpleCard({ item, index }) {
+function SimpleCard({ item, index, onAddToCart }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -339,15 +378,9 @@ function SimpleCard({ item, index }) {
           ${item.price}
         </span>
       </div>
-    </motion.article>
-  );
-}
 
-function MiniTag({ text }) {
-  return (
-    <span className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-center text-[10px] font-bold text-white/60 backdrop-blur">
-      {text}
-    </span>
+      <ItemActions item={item} onAddToCart={onAddToCart} />
+    </motion.article>
   );
 }
 
