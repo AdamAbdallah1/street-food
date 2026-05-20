@@ -158,7 +158,7 @@ export default function App() {
           </div>
         </nav>
 
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-8 pt-9 sm:pt-12 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[0.98fr_1.02fr] lg:items-center lg:pt-0">
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-8 pt-9 sm:pt-12 lg:min-h-[calc(100vh-88px)] lg:grid-cols-[0.98fr_1.02fr] lg:items-center lg:pt-3">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
