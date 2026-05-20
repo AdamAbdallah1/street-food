@@ -40,7 +40,7 @@ export default function App() {
     const timer = setTimeout(() => setLoading(false), 1300);
 
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/street-food/sw.js").catch(() => {});
+      navigator.serviceWorker.register("/demo/street-food/sw.js")
     }
 
     setSavedNames(JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"));
