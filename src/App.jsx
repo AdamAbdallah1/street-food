@@ -1,10 +1,14 @@
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaInstagram,
   FaMapMarkerAlt,
   FaPhoneAlt,
   FaWhatsapp,
+  FaSearch,
+  FaShareAlt,
+  FaHeart,
+  FaUtensils,
 } from "react-icons/fa";
 import logo from "./assets/streetfood-logo.jpg";
 import { categories, items } from "./data/menu";
@@ -12,22 +16,58 @@ import OrderPanel from "./components/OrderPanel";
 import ItemActions from "./components/ItemActions";
 import BackToTop from "./components/BackToTop";
 
-const phone = "96181090757";
+const phone = "96176884818";
 const mapLink = "https://maps.app.goo.gl/xbshzPMtQXAxVaGw5";
+const FAVORITES_KEY = "streetfood_saved_items";
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
   const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [savedNames, setSavedNames] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const featuredItem = items.find((item) => item.image) || items[0];
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1400);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/street-food/sw.js").catch(() => {});
+    }
+
+    const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+    setSavedNames(saved);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  function refreshSaved() {
+    const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+    setSavedNames(saved);
+  }
+
   const filteredItems = useMemo(() => {
-    if (activeCategory === "All") return items;
-    return items.filter((item) => item.category === activeCategory);
-  }, [activeCategory]);
+    return items.filter((item) => {
+      const matchesCategory =
+        activeCategory === "All" || item.category === activeCategory;
+
+      const matchesSearch =
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        item.category.toLowerCase().includes(search.toLowerCase()) ||
+        item.desc.toLowerCase().includes(search.toLowerCase());
+
+      const matchesSaved = !showSavedOnly || savedNames.includes(item.name);
+
+      return matchesCategory && matchesSearch && matchesSaved;
+    });
+  }, [activeCategory, search, showSavedOnly, savedNames]);
 
   function addToCart(item) {
+    if (navigator.vibrate) navigator.vibrate(25);
+
     setCart((current) => {
       const exists = current.find((cartItem) => cartItem.name === item.name);
 
@@ -45,8 +85,27 @@ export default function App() {
     setIsOrderOpen(true);
   }
 
+  async function shareMenu() {
+    const shareData = {
+      title: "The Street Food LB Menu",
+      text: "Check The Street Food LB digital menu.",
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("Menu link copied.");
+    }
+  }
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#060606] text-white">
+      <AnimatePresence>
+        {loading && <SplashLoader logo={logo} />}
+      </AnimatePresence>
+
       <section className="relative overflow-hidden px-4 pb-14 pt-4 sm:px-6 lg:min-h-screen lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-15%,rgba(255,255,255,0.14),transparent_34%),linear-gradient(180deg,#111_0%,#060606_58%,#030303_100%)]" />
         <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:38px_38px]" />
@@ -75,9 +134,9 @@ export default function App() {
             <a href="#location" className="transition hover:text-white">
               Location
             </a>
-            <a href="#contact" className="transition hover:text-white">
-              Contact
-            </a>
+            <button onClick={shareMenu} className="transition hover:text-white">
+              Share
+            </button>
           </div>
 
           <button
@@ -95,7 +154,9 @@ export default function App() {
             transition={{ duration: 0.65 }}
             className="text-center lg:text-left"
           >
-            <h1 className="mx-auto max-w-[440px] text-[2.75rem] font-black uppercase leading-[0.86] tracking-[-0.075em] min-[380px]:text-[3.05rem] sm:text-6xl md:text-7xl lg:mx-0 lg:max-w-[560px] lg:text-[5.8rem]">
+            <OpeningStatus />
+
+            <h1 className="mx-auto mt-4 max-w-[440px] text-[2.75rem] font-black uppercase leading-[0.86] tracking-[-0.075em] min-[380px]:text-[3.05rem] sm:text-6xl md:text-7xl lg:mx-0 lg:max-w-[560px] lg:text-[5.8rem]">
               Street
               <span className="block text-white/28">Food</span>
             </h1>
@@ -113,13 +174,13 @@ export default function App() {
                 Explore Menu
               </a>
 
-              <a
-                href={mapLink}
-                target="_blank"
-                className="rounded-full border border-white/15 bg-white/[0.035] px-5 py-3 text-center text-xs font-black text-white transition hover:bg-white hover:text-black active:scale-95 sm:text-sm"
+              <button
+                onClick={shareMenu}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.035] px-5 py-3 text-center text-xs font-black text-white transition hover:bg-white hover:text-black active:scale-95 sm:text-sm"
               >
-                Location
-              </a>
+                <FaShareAlt className="text-[11px]" />
+                Share
+              </button>
             </div>
 
             <div className="mx-auto mt-6 grid max-w-sm grid-cols-3 gap-2 lg:mx-0">
@@ -202,8 +263,33 @@ export default function App() {
             </div>
 
             <p className="max-w-md text-sm leading-6 text-white/48">
-              Save favorites, add items, then send the full order on WhatsApp.
+              Search, save favorites, add items, then send the full order on
+              WhatsApp.
             </p>
+          </div>
+
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-1 items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3">
+              <FaSearch className="text-sm text-white/35" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search burgers, fries, wings..."
+                className="w-full bg-transparent text-sm font-semibold text-white outline-none placeholder:text-white/30"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowSavedOnly((value) => !value)}
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black transition ${
+                showSavedOnly
+                  ? "bg-white text-black"
+                  : "border border-white/10 bg-white/[0.04] text-white/60"
+              }`}
+            >
+              <FaHeart className="text-[11px]" />
+              Saved ({savedNames.length})
+            </button>
           </div>
 
           <div className="sticky top-3 z-30 -mx-4 mb-7 overflow-x-auto border-y border-white/10 bg-[#060606]/85 px-4 py-3 backdrop-blur-xl sm:mx-0 sm:rounded-full sm:border">
@@ -224,25 +310,37 @@ export default function App() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item, index) =>
-              item.image ? (
-                <FoodCard
-                  key={item.name}
-                  item={item}
-                  index={index}
-                  onAddToCart={addToCart}
-                />
-              ) : (
-                <SimpleCard
-                  key={item.name}
-                  item={item}
-                  index={index}
-                  onAddToCart={addToCart}
-                />
-              )
-            )}
-          </div>
+          {filteredItems.length === 0 ? (
+            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-8 text-center">
+              <FaUtensils className="mx-auto text-2xl text-white/35" />
+              <h3 className="mt-3 text-lg font-black">No items found</h3>
+              <p className="mt-2 text-sm text-white/45">
+                Try another search or category.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredItems.map((item, index) =>
+                item.image ? (
+                  <FoodCard
+                    key={item.name}
+                    item={item}
+                    index={index}
+                    onAddToCart={addToCart}
+                    onSavedChange={refreshSaved}
+                  />
+                ) : (
+                  <SimpleCard
+                    key={item.name}
+                    item={item}
+                    index={index}
+                    onAddToCart={addToCart}
+                    onSavedChange={refreshSaved}
+                  />
+                )
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -261,7 +359,8 @@ export default function App() {
             </h2>
 
             <p className="mt-4 text-sm leading-7 text-white/50">
-              Open the map, call directly, or send a WhatsApp order.
+              QR-ready menu, direct WhatsApp ordering, and Google Maps location
+              in one page.
             </p>
 
             <div id="contact" className="mt-7 grid gap-3">
@@ -305,12 +404,60 @@ export default function App() {
         setIsOpen={setIsOrderOpen}
       />
 
+      <MobileDock
+        cart={cart}
+        openOrder={() => setIsOrderOpen(true)}
+        shareMenu={shareMenu}
+      />
+
       <BackToTop />
     </main>
   );
 }
 
-function FoodCard({ item, index, onAddToCart }) {
+function SplashLoader({ logo }) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-[#060606]"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.45 }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.86 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.04 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <img
+          src={logo}
+          alt="The Street Food LB"
+          className="mx-auto h-24 w-24 rounded-full border border-white/10 object-cover shadow-2xl"
+        />
+        <p className="mt-5 text-[11px] font-black uppercase tracking-[0.3em] text-white/45">
+          The Street Food
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function OpeningStatus() {
+  const open = true;
+
+  return (
+    <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55 lg:mx-0">
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${
+          open ? "bg-emerald-400" : "bg-red-400"
+        }`}
+      />
+      {open ? "Open Now • Delivery Available" : "Currently Closed"}
+    </div>
+  );
+}
+
+function FoodCard({ item, index, onAddToCart, onSavedChange }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -346,13 +493,17 @@ function FoodCard({ item, index, onAddToCart }) {
           {item.desc}
         </p>
 
-        <ItemActions item={item} onAddToCart={onAddToCart} />
+        <ItemActions
+          item={item}
+          onAddToCart={onAddToCart}
+          onSavedChange={onSavedChange}
+        />
       </div>
     </motion.article>
   );
 }
 
-function SimpleCard({ item, index, onAddToCart }) {
+function SimpleCard({ item, index, onAddToCart, onSavedChange }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -379,8 +530,37 @@ function SimpleCard({ item, index, onAddToCart }) {
         </span>
       </div>
 
-      <ItemActions item={item} onAddToCart={onAddToCart} />
+      <ItemActions
+        item={item}
+        onAddToCart={onAddToCart}
+        onSavedChange={onSavedChange}
+      />
     </motion.article>
+  );
+}
+
+function MobileDock({ cart, openOrder, shareMenu }) {
+  return (
+    <div className="fixed bottom-4 left-1/2 z-40 grid w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 grid-cols-3 gap-2 rounded-full border border-white/10 bg-black/80 p-2 shadow-2xl backdrop-blur-xl md:hidden">
+      <a
+        href="#menu"
+        className="rounded-full px-3 py-2 text-center text-[11px] font-black text-white/65"
+      >
+        Menu
+      </a>
+      <button
+        onClick={openOrder}
+        className="rounded-full bg-white px-3 py-2 text-[11px] font-black text-black"
+      >
+        Order {cart.length > 0 ? `(${cart.length})` : ""}
+      </button>
+      <button
+        onClick={shareMenu}
+        className="rounded-full px-3 py-2 text-[11px] font-black text-white/65"
+      >
+        Share
+      </button>
+    </div>
   );
 }
 

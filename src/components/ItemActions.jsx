@@ -3,7 +3,7 @@ import { FaHeart, FaRegHeart, FaPlus } from "react-icons/fa";
 
 const FAVORITES_KEY = "streetfood_saved_items";
 
-export default function ItemActions({ item, onAddToCart }) {
+export default function ItemActions({ item, onAddToCart, onSavedChange }) {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -12,6 +12,8 @@ export default function ItemActions({ item, onAddToCart }) {
   }, [item.name]);
 
   function toggleSaved() {
+    if (navigator.vibrate) navigator.vibrate(20);
+
     const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
 
     const nextSaved = saved.includes(item.name)
@@ -20,6 +22,7 @@ export default function ItemActions({ item, onAddToCart }) {
 
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(nextSaved));
     setIsSaved(nextSaved.includes(item.name));
+    onSavedChange?.();
   }
 
   return (
