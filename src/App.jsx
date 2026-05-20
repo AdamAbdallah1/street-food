@@ -272,11 +272,6 @@ export default function App() {
                 Full Menu
               </h2>
             </div>
-
-            <p className="max-w-md text-sm leading-6 text-muted">
-              Search, save favorites, add items, then send the full order on
-              WhatsApp.
-            </p>
           </div>
 
           <div className="mb-4 flex flex-col gap-3 sm:flex-row">
