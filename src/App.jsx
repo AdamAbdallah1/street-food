@@ -20,6 +20,7 @@ import ItemActions from "./components/ItemActions";
 import BackToTop from "./components/BackToTop";
 import ThemeToggle from "./components/ThemeToggle";
 import InstallPrompt from "./components/InstallPrompt";
+import InstagramFeed from "./components/InstagramFeed";
 
 const phone = "96176884818";
 const mapLink = "https://maps.app.goo.gl/xbshzPMtQXAxVaGw5";
@@ -419,7 +420,7 @@ export default function App() {
           </div>
         </div>
       </section>
-
+<InstagramFeed />
       <section
         id="location"
         className="relative px-4 pb-24 pt-5 sm:px-6 lg:px-8"
@@ -540,6 +541,8 @@ export default function App() {
     </main>
   );
 }
+
+<InstagramFeed />
 
 function SplashLoader({ logo }) {
   return (
