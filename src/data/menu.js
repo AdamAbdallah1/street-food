@@ -341,7 +341,6 @@ export const items = [
     category: "Soft Drinks",
     name: "Ice Tea",
     price: "1.50",
-    image: softDrinks,
     desc: "Cold ice tea.",
   },
 

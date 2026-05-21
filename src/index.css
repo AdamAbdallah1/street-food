@@ -213,3 +213,75 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+
+.order-sheet {
+  animation: orderSheetEnter 0.24s ease-out;
+}
+
+@keyframes orderSheetEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .order-sheet {
+    max-height: 92vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.order-sheet {
+  animation: orderSheetEnter 0.24s ease-out;
+}
+
+.order-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.order-footer {
+  background:
+    linear-gradient(180deg, transparent, var(--card) 18%),
+    var(--card);
+}
+
+.order-grabber {
+  opacity: 0.8;
+}
+
+@keyframes orderSheetEnter {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .order-sheet {
+    height: 92vh;
+    max-height: 92vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .order-footer {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+
+  .cart-bubble {
+    bottom: calc(env(safe-area-inset-bottom) + 4.85rem);
+  }
+}

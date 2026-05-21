@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { FaHeart, FaRegHeart, FaPlus } from "react-icons/fa";
+import { FaBolt, FaHeart, FaPlus, FaRegHeart } from "react-icons/fa";
 
 const FAVORITES_KEY = "streetfood_saved_items";
 
-export default function ItemActions({ item, onAddToCart, onSavedChange }) {
+export default function ItemActions({
+  item,
+  onAddToCart,
+  onQuickOrder,
+  onSavedChange,
+}) {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -26,10 +31,10 @@ export default function ItemActions({ item, onAddToCart, onSavedChange }) {
   }
 
   return (
-    <div className="mt-4 flex items-center gap-2">
+    <div className="mt-4 grid grid-cols-[2.4rem_1fr_1fr] gap-2">
       <button
         onClick={toggleSaved}
-        className="btn-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs"
+        className="btn-secondary flex h-10 items-center justify-center rounded-full text-xs transition active:scale-95"
         aria-label="Save item"
       >
         {isSaved ? <FaHeart /> : <FaRegHeart />}
@@ -37,10 +42,18 @@ export default function ItemActions({ item, onAddToCart, onSavedChange }) {
 
       <button
         onClick={() => onAddToCart(item)}
-        className="btn-primary flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs font-black transition active:scale-95"
+        className="btn-secondary flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[11px] font-black transition active:scale-95"
       >
         <FaPlus className="text-[10px]" />
-        Add / Order
+        Add
+      </button>
+
+      <button
+        onClick={() => onQuickOrder(item)}
+        className="btn-primary flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[11px] font-black transition active:scale-95"
+      >
+        <FaBolt className="text-[10px]" />
+        Order
       </button>
     </div>
   );

@@ -90,7 +90,10 @@ export default function App() {
 
       return [...current, { ...item, qty: 1 }];
     });
+  }
 
+  function quickOrder(item) {
+    addToCart(item);
     setIsOrderOpen(true);
   }
 
@@ -224,7 +227,7 @@ export default function App() {
                 <img
                   src={featuredItem.image}
                   alt={featuredItem.name}
-                  className="h-[310px] w-full object-cover min-[380px]:h-[340px] sm:h-[420px] lg:h-[500px]"
+                  className="h-[310px] w-full object-cover min-[380px]:h-[340px] sm:h-[420px] lg:h-[450px]"
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
@@ -329,6 +332,7 @@ export default function App() {
                     item={item}
                     index={index}
                     onAddToCart={addToCart}
+                    onQuickOrder={quickOrder}
                     onSavedChange={refreshSaved}
                   />
                 ) : (
@@ -337,6 +341,7 @@ export default function App() {
                     item={item}
                     index={index}
                     onAddToCart={addToCart}
+                    onQuickOrder={quickOrder}
                     onSavedChange={refreshSaved}
                   />
                 )
@@ -455,21 +460,6 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="glass rounded-2xl p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">
-                        Estimated Time
-                      </p>
-                      <p className="mt-2 text-sm font-black">
-                        Pickup or nearby delivery
-                      </p>
-                    </div>
-
-                    <FaClock className="text-xl text-soft" />
-                  </div>
-                </div>
-
                 <ActionButton
                   href={mapLink}
                   icon={<FaMapMarkerAlt />}
@@ -585,7 +575,7 @@ function OpeningStatus() {
   );
 }
 
-function FoodCard({ item, index, onAddToCart, onSavedChange }) {
+function FoodCard({ item, index, onAddToCart, onQuickOrder, onSavedChange }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -628,6 +618,7 @@ function FoodCard({ item, index, onAddToCart, onSavedChange }) {
         <ItemActions
           item={item}
           onAddToCart={onAddToCart}
+          onQuickOrder={onQuickOrder}
           onSavedChange={onSavedChange}
         />
       </div>
@@ -635,7 +626,7 @@ function FoodCard({ item, index, onAddToCart, onSavedChange }) {
   );
 }
 
-function SimpleCard({ item, index, onAddToCart, onSavedChange }) {
+function SimpleCard({ item, index, onAddToCart, onQuickOrder, onSavedChange }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
@@ -672,6 +663,7 @@ function SimpleCard({ item, index, onAddToCart, onSavedChange }) {
       <ItemActions
         item={item}
         onAddToCart={onAddToCart}
+        onQuickOrder={onQuickOrder}
         onSavedChange={onSavedChange}
       />
     </motion.article>
