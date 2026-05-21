@@ -19,6 +19,7 @@ import OrderPanel from "./components/OrderPanel";
 import ItemActions from "./components/ItemActions";
 import BackToTop from "./components/BackToTop";
 import ThemeToggle from "./components/ThemeToggle";
+import InstallPrompt from "./components/InstallPrompt";
 
 const phone = "96176884818";
 const mapLink = "https://maps.app.goo.gl/xbshzPMtQXAxVaGw5";
@@ -527,6 +528,7 @@ export default function App() {
         isOpen={isOrderOpen}
         setIsOpen={setIsOrderOpen}
       />
+      <InstallPrompt />
 
       <MobileDock
         cart={cart}

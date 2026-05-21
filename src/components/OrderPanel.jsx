@@ -1,66 +1,159 @@
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import {
   FaArrowLeft,
-  FaMinus,
-  FaPlus,
-  FaTimes,
-  FaWhatsapp,
-  FaMotorcycle,
-  FaStore,
-  FaMapMarkerAlt,
-  FaUser,
-  FaPhoneAlt,
   FaCheckCircle,
+  FaHistory,
+  FaMapMarkerAlt,
+  FaMinus,
+  FaMotorcycle,
+  FaPhoneAlt,
+  FaPlus,
   FaReceipt,
+  FaStore,
+  FaTimes,
+  FaTrash,
+  FaUser,
+  FaWhatsapp,
 } from "react-icons/fa";
+
+import toast from "react-hot-toast";
 
 const DELIVERY_FEE = 1;
 
-export default function OrderPanel({ phone, cart, setCart, isOpen, setIsOpen }) {
+const CART_STORAGE_KEY = "streetfood_cart";
+const LAST_ORDER_KEY = "streetfood_last_order";
+
+export default function OrderPanel({
+  phone,
+  cart,
+  setCart,
+  isOpen,
+  setIsOpen,
+}) {
+  const panelRef = useRef(null);
+
+  const startY = useRef(0);
+  const currentY = useRef(0);
+
+  const [dragging, setDragging] = useState(false);
+
   const [note, setNote] = useState("");
-  const [orderType, setOrderType] = useState("delivery");
-  const [locationStatus, setLocationStatus] = useState("");
-  const [customerLocation, setCustomerLocation] = useState(null);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [manualAddress, setManualAddress] = useState("");
-  const [error, setError] = useState("");
+  const [orderType, setOrderType] =
+    useState("delivery");
+
+  const [customerName, setCustomerName] =
+    useState("");
+
+  const [customerPhone, setCustomerPhone] =
+    useState("");
+
+  const [manualAddress, setManualAddress] =
+    useState("");
+
+  const [customerLocation, setCustomerLocation] =
+    useState(null);
+
+  const [showSuccess, setShowSuccess] =
+    useState(false);
+
+  const [lastOrder, setLastOrder] =
+    useState(null);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem(
+      CART_STORAGE_KEY
+    );
+
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+
+    const recent = localStorage.getItem(
+      LAST_ORDER_KEY
+    );
+
+    if (recent) {
+      setLastOrder(JSON.parse(recent));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify(cart)
+    );
+  }, [cart]);
 
   const subtotal = useMemo(() => {
-    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+    return cart.reduce(
+      (sum, item) =>
+        sum + Number(item.price) * item.qty,
+      0
+    );
   }, [cart]);
 
   const totalItems = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.qty, 0);
+    return cart.reduce(
+      (sum, item) => sum + item.qty,
+      0
+    );
   }, [cart]);
 
   const deliveryFee =
-    orderType === "delivery" && cart.length > 0 ? DELIVERY_FEE : 0;
+    orderType === "delivery" &&
+    cart.length > 0
+      ? DELIVERY_FEE
+      : 0;
 
-  const total = (subtotal + deliveryFee).toFixed(2);
+  const total = (
+    subtotal + deliveryFee
+  ).toFixed(2);
 
-  const hasDeliveryLocation =
-    orderType === "pickup" ||
-    customerLocation ||
-    manualAddress.trim().length >= 5;
+  function vibrate(type = "light") {
+    if (!navigator.vibrate) return;
+
+    if (type === "light") {
+      navigator.vibrate(10);
+    }
+
+    if (type === "success") {
+      navigator.vibrate([20, 50, 20]);
+    }
+  }
 
   function increase(name) {
-    if (navigator.vibrate) navigator.vibrate(15);
+    vibrate();
 
     setCart((current) =>
       current.map((item) =>
-        item.name === name ? { ...item, qty: item.qty + 1 } : item
+        item.name === name
+          ? {
+              ...item,
+              qty: item.qty + 1,
+            }
+          : item
       )
     );
   }
 
   function decrease(name) {
-    if (navigator.vibrate) navigator.vibrate(15);
+    vibrate();
 
     setCart((current) =>
       current
         .map((item) =>
-          item.name === name ? { ...item, qty: item.qty - 1 } : item
+          item.name === name
+            ? {
+                ...item,
+                qty: item.qty - 1,
+              }
+            : item
         )
         .filter((item) => item.qty > 0)
     );
@@ -68,33 +161,30 @@ export default function OrderPanel({ phone, cart, setCart, isOpen, setIsOpen }) 
 
   function clearOrder() {
     setCart([]);
-    setNote("");
-    setCustomerName("");
-    setCustomerPhone("");
-    setManualAddress("");
-    setCustomerLocation(null);
-    setLocationStatus("");
-    setError("");
-    setOrderType("delivery");
+
+    localStorage.removeItem(
+      CART_STORAGE_KEY
+    );
+
+    toast("Order cleared");
   }
 
-  function closeAndScrollToMenu() {
-    setIsOpen(false);
+  function restoreLastOrder() {
+    if (!lastOrder?.items) return;
 
-    setTimeout(() => {
-      document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" });
-    }, 120);
+    setCart(lastOrder.items);
+
+    toast.success("Order restored");
   }
 
   function requestLocation() {
-    setError("");
-
     if (!navigator.geolocation) {
-      setLocationStatus("Location is not supported on this device.");
+      toast.error(
+        "Location not supported"
+      );
+
       return;
     }
-
-    setLocationStatus("Requesting location...");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -103,77 +193,116 @@ export default function OrderPanel({ phone, cart, setCart, isOpen, setIsOpen }) 
           lng: position.coords.longitude,
         });
 
-        setLocationStatus("Location added successfully.");
+        toast.success("Location added");
+
+        vibrate("success");
       },
       () => {
-        setLocationStatus(
-          "Location permission was denied. You can type your address instead."
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 0,
+        toast.error("Location denied");
       }
     );
   }
 
   function sendWhatsAppOrder() {
-    setError("");
-
     if (cart.length === 0) {
-      setError("Add at least one item first.");
-      return;
-    }
-
-    if (orderType === "delivery" && !hasDeliveryLocation) {
-      setError("For delivery, share your location or type your address.");
+      toast.error("Add items first");
       return;
     }
 
     const orderLines = cart
       .map(
-        (item, index) =>
-          `${index + 1}. ${item.name} x${item.qty} - $${(
-            Number(item.price) * item.qty
-          ).toFixed(2)}`
+        (item) =>
+          `• ${item.name} x${item.qty}`
       )
       .join("\n");
-
-    const customerLines = `Name: ${
-      customerName.trim() || "Not provided"
-    }\nPhone: ${customerPhone.trim() || "Not provided"}`;
 
     const locationLine =
       orderType === "delivery"
         ? customerLocation
-          ? `Google Maps:\nhttps://www.google.com/maps?q=${customerLocation.lat},${customerLocation.lng}`
-          : `Address:\n${manualAddress.trim()}`
-        : "Pickup from store";
+          ? `https://www.google.com/maps?q=${customerLocation.lat},${customerLocation.lng}`
+          : manualAddress
+        : "Pickup";
 
-    const noteLine = note.trim() ? note.trim() : "No note";
+    const message = `NEW ORDER
 
-    const message = `NEW ORDER - The Street Food LB
-
-Type: ${orderType.toUpperCase()}
-
-Items:
 ${orderLines}
 
-Subtotal: $${subtotal.toFixed(2)}
-Delivery: $${deliveryFee.toFixed(2)}
 Total: $${total}
 
 Customer:
-${customerLines}
+${customerName || "Not provided"}
+
+Phone:
+${customerPhone || "Not provided"}
 
 Location:
 ${locationLine}
 
 Note:
-${noteLine}`;
+${note || "No note"}
+`;
 
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+    localStorage.setItem(
+      LAST_ORDER_KEY,
+      JSON.stringify({
+        items: cart,
+        total,
+      })
+    );
+
+    setLastOrder({
+      items: cart,
+      total,
+    });
+
+    setShowSuccess(true);
+
+    vibrate("success");
+
+    setTimeout(() => {
+      window.open(
+        `https://wa.me/${phone}?text=${encodeURIComponent(
+          message
+        )}`
+      );
+    }, 900);
+  }
+
+  function handleTouchStart(e) {
+    startY.current =
+      e.touches[0].clientY;
+  }
+
+  function handleTouchMove(e) {
+    currentY.current =
+      e.touches[0].clientY;
+
+    const diff =
+      currentY.current - startY.current;
+
+    if (diff > 0) {
+      setDragging(true);
+
+      if (panelRef.current) {
+        panelRef.current.style.transform = `translateY(${diff}px)`;
+      }
+    }
+  }
+
+  function handleTouchEnd() {
+    const diff =
+      currentY.current - startY.current;
+
+    if (diff > 140) {
+      setIsOpen(false);
+    }
+
+    if (panelRef.current) {
+      panelRef.current.style.transform =
+        "translateY(0px)";
+    }
+
+    setDragging(false);
   }
 
   return (
@@ -181,268 +310,235 @@ ${noteLine}`;
       {cart.length > 0 && (
         <button
           onClick={() => setIsOpen(true)}
-          className="cart-bubble fixed left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full px-5 py-3 text-xs font-black shadow-2xl"
+          className="cart-bubble fixed left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center justify-center gap-3 rounded-full px-5 py-3 text-xs font-black shadow-2xl"
         >
           <FaWhatsapp />
-          Order List ({totalItems})
+
+          {totalItems} Items • ${total}
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/60 px-0 pb-0 pt-8 backdrop-blur-xl sm:items-center sm:px-4 sm:py-5">
-          <div className="card order-sheet mx-auto flex h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] shadow-2xl sm:h-auto sm:max-h-[92vh] sm:rounded-[1.75rem]">
-            <div className="order-grabber mx-auto mt-2 h-1.5 w-12 rounded-full bg-[var(--soft)] sm:hidden" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl">
+          <div
+            ref={panelRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className={`order-sheet fixed bottom-0 left-0 right-0 mx-auto flex h-[94vh] max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-theme bg-[var(--card)] transition-transform ${
+              dragging
+                ? ""
+                : "duration-300"
+            }`}
+          >
+            <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-[var(--soft)]" />
 
-            <div className="flex items-center justify-between border-b border-theme px-4 pb-4 pt-3 sm:p-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-soft">
-                  Checkout
+            {showSuccess ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-black">
+                  <FaCheckCircle className="text-4xl" />
+                </div>
+
+                <h2 className="mt-6 text-2xl font-black">
+                  Order Sent
+                </h2>
+
+                <p className="mt-2 text-sm text-muted">
+                  Redirecting to WhatsApp...
                 </p>
-                <div className="mt-1 flex items-center gap-2">
-                  <h3 className="text-xl font-black">Review Order</h3>
-                  {cart.length > 0 && (
-                    <span className="rounded-full bg-[var(--primary)] px-2 py-1 text-[10px] font-black text-[var(--primary-text)]">
-                      {totalItems} items
-                    </span>
+              </div>
+            ) : (
+              <>
+                <header className="border-b border-theme px-4 pb-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-soft">
+                        Checkout
+                      </p>
+
+                      <h2 className="mt-1 text-xl font-black">
+                        Your Order
+                      </h2>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        setIsOpen(false)
+                      }
+                      className="btn-primary flex h-10 w-10 items-center justify-center rounded-full"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                </header>
+
+                <div className="order-scroll flex-1 overflow-y-auto px-4 py-4">
+
+                  {lastOrder?.items && (
+                    <button
+                      onClick={
+                        restoreLastOrder
+                      }
+                      className="btn-secondary mb-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black"
+                    >
+                      <FaHistory />
+                      Order Again
+                    </button>
                   )}
-                </div>
-              </div>
 
-              <button
-                onClick={() => setIsOpen(false)}
-                className="btn-primary flex h-10 w-10 items-center justify-center rounded-full"
-                aria-label="Close order panel"
-              >
-                <FaTimes />
-              </button>
-            </div>
+                  <div className="grid gap-3">
+                    {cart.map((item) => (
+                      <div
+                        key={item.name}
+                        className="glass rounded-3xl p-3"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-black">
+                              {item.name}
+                            </p>
 
-            <div className="order-scroll flex-1 overflow-y-auto px-4 py-4">
-              <SectionTitle number="01" title="Items" />
+                            <p className="mt-1 text-xs text-soft">
+                              ${item.price}
+                            </p>
+                          </div>
 
-              {cart.length === 0 ? (
-                <div className="glass rounded-3xl p-5 text-center">
-                  <FaReceipt className="mx-auto text-2xl text-soft" />
-                  <p className="mt-3 text-sm font-black">No items added yet.</p>
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    Add items from the menu to start the order.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {cart.map((item) => (
-                    <div key={item.name} className="glass rounded-3xl p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="line-clamp-1 text-sm font-black">
-                            {item.name}
-                          </p>
-                          <p className="mt-1 text-xs text-soft">
-                            ${item.price} each
+                          <p className="text-sm font-black">
+                            $
+                            {(
+                              Number(
+                                item.price
+                              ) * item.qty
+                            ).toFixed(2)}
                           </p>
                         </div>
 
-                        <p className="shrink-0 text-sm font-black">
-                          ${(Number(item.price) * item.qty).toFixed(2)}
-                        </p>
-                      </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                decrease(
+                                  item.name
+                                )
+                              }
+                              className="btn-secondary flex h-9 w-9 items-center justify-center rounded-full"
+                            >
+                              <FaMinus />
+                            </button>
 
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
+                            <span className="w-8 text-center text-sm font-black">
+                              {item.qty}
+                            </span>
+
+                            <button
+                              onClick={() =>
+                                increase(
+                                  item.name
+                                )
+                              }
+                              className="btn-primary flex h-9 w-9 items-center justify-center rounded-full"
+                            >
+                              <FaPlus />
+                            </button>
+                          </div>
+
                           <button
-                            onClick={() => decrease(item.name)}
-                            className="btn-secondary flex h-9 w-9 items-center justify-center rounded-full text-xs"
-                            aria-label="Decrease quantity"
+                            onClick={
+                              clearOrder
+                            }
+                            className="text-soft"
                           >
-                            <FaMinus />
-                          </button>
-
-                          <span className="w-8 text-center text-sm font-black">
-                            {item.qty}
-                          </span>
-
-                          <button
-                            onClick={() => increase(item.name)}
-                            className="btn-primary flex h-9 w-9 items-center justify-center rounded-full text-xs"
-                            aria-label="Increase quantity"
-                          >
-                            <FaPlus />
+                            <FaTrash />
                           </button>
                         </div>
-
-                        <p className="rounded-full border border-theme px-3 py-1 text-[11px] font-black text-muted">
-                          Qty {item.qty}
-                        </p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                onClick={closeAndScrollToMenu}
-                className="btn-secondary mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black"
-              >
-                <FaArrowLeft />
-                Add More Items
-              </button>
-
-              <SectionTitle number="02" title="Order Type" />
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    setOrderType("pickup");
-                    setCustomerLocation(null);
-                    setManualAddress("");
-                    setLocationStatus("");
-                    setError("");
-                  }}
-                  className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition ${
-                    orderType === "pickup" ? "btn-primary" : "btn-secondary"
-                  }`}
-                >
-                  <FaStore />
-                  Pickup
-                </button>
-
-                <button
-                  onClick={() => {
-                    setOrderType("delivery");
-                    setError("");
-                  }}
-                  className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition ${
-                    orderType === "delivery" ? "btn-primary" : "btn-secondary"
-                  }`}
-                >
-                  <FaMotorcycle />
-                  Delivery
-                </button>
-              </div>
-
-              <SectionTitle number="03" title="Customer Info" />
-
-              <div className="grid gap-3">
-                <FieldShell icon={<FaUser />}>
-                  <input
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Customer name optional"
-                    className="w-full bg-transparent text-sm text-app outline-none placeholder:text-soft"
-                  />
-                </FieldShell>
-
-                <FieldShell icon={<FaPhoneAlt />}>
-                  <input
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Customer phone optional"
-                    inputMode="tel"
-                    className="w-full bg-transparent text-sm text-app outline-none placeholder:text-soft"
-                  />
-                </FieldShell>
-              </div>
-
-              {orderType === "delivery" && (
-                <>
-                  <SectionTitle number="04" title="Delivery Details" />
-
-                  <div className="rounded-3xl border border-theme bg-transparent p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-soft">
-                        Delivery Fee
-                      </p>
-                      <p className="text-sm font-black">
-                        ${deliveryFee.toFixed(2)}
-                      </p>
-                    </div>
-
-                    <p className="mt-1 text-xs text-muted">
-                      Delivery starts from $1. Final fee may vary by area.
-                    </p>
+                    ))}
                   </div>
 
-                  <button
-                    onClick={requestLocation}
-                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black ${
-                      customerLocation ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {customerLocation ? <FaCheckCircle /> : <FaMapMarkerAlt />}
-                    {customerLocation ? "Location Added" : "Share Current Location"}
-                  </button>
+                  <div className="mt-5 grid gap-3">
+                    <Field
+                      icon={<FaUser />}
+                      value={customerName}
+                      onChange={
+                        setCustomerName
+                      }
+                      placeholder="Your name"
+                    />
+
+                    <Field
+                      icon={<FaPhoneAlt />}
+                      value={customerPhone}
+                      onChange={
+                        setCustomerPhone
+                      }
+                      placeholder="Phone number"
+                    />
+                  </div>
+
+                  {orderType ===
+                    "delivery" && (
+                    <>
+                      <button
+                        onClick={
+                          requestLocation
+                        }
+                        className="btn-secondary mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black"
+                      >
+                        <FaMapMarkerAlt />
+                        Share Location
+                      </button>
+
+                      <textarea
+                        value={
+                          manualAddress
+                        }
+                        onChange={(e) =>
+                          setManualAddress(
+                            e.target.value
+                          )
+                        }
+                        placeholder="Delivery address..."
+                        className="mt-3 min-h-24 w-full resize-none rounded-2xl border border-theme bg-transparent p-4 text-sm outline-none placeholder:text-soft"
+                      />
+                    </>
+                  )}
 
                   <textarea
-                    value={manualAddress}
-                    onChange={(e) => {
-                      setManualAddress(e.target.value);
-                      setError("");
-                    }}
-                    placeholder="Or type delivery address manually..."
-                    className="mt-3 min-h-20 w-full resize-none rounded-2xl border border-theme bg-transparent p-4 text-sm text-app outline-none placeholder:text-soft"
+                    value={note}
+                    onChange={(e) =>
+                      setNote(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Extra notes..."
+                    className="mt-4 min-h-20 w-full resize-none rounded-2xl border border-theme bg-transparent p-4 text-sm outline-none placeholder:text-soft"
                   />
-
-                  {locationStatus && (
-                    <p className="mt-2 text-center text-xs text-muted">
-                      {locationStatus}
-                    </p>
-                  )}
-                </>
-              )}
-
-              <SectionTitle number={orderType === "delivery" ? "05" : "04"} title="Order Note" />
-
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="No pickles, extra sauce, delivery details..."
-                className="min-h-24 w-full resize-none rounded-2xl border border-theme bg-transparent p-4 text-sm text-app outline-none placeholder:text-soft"
-              />
-
-              {error && (
-                <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-xs font-bold text-red-400">
-                  {error}
-                </p>
-              )}
-            </div>
-
-            <div className="order-footer border-t border-theme p-4">
-              <div className="mb-3 rounded-3xl border border-theme bg-transparent p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-sm text-muted">Subtotal</p>
-                  <p className="text-sm font-black">${subtotal.toFixed(2)}</p>
                 </div>
 
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm text-muted">
-                    Delivery {orderType === "delivery" ? "" : "(Pickup)"}
-                  </p>
-                  <p className="text-sm font-black">${deliveryFee.toFixed(2)}</p>
-                </div>
+                <footer className="order-footer border-t border-theme p-4">
+                  <div className="mb-4 flex items-center justify-between rounded-3xl border border-theme p-4">
+                    <div>
+                      <p className="text-xs text-muted">
+                        Total
+                      </p>
 
-                <div className="flex items-center justify-between border-t border-theme pt-3">
-                  <p className="text-sm font-black">Estimated Total</p>
-                  <p className="text-2xl font-black">${total}</p>
-                </div>
-              </div>
+                      <p className="mt-1 text-2xl font-black">
+                        ${total}
+                      </p>
+                    </div>
 
-              <div className="grid grid-cols-[0.7fr_1.3fr] gap-3">
-                <button
-                  onClick={clearOrder}
-                  className="btn-secondary rounded-full px-4 py-3 text-xs font-black"
-                >
-                  Clear
-                </button>
-
-                <button
-                  onClick={sendWhatsAppOrder}
-                  disabled={cart.length === 0}
-                  className="btn-primary rounded-full px-4 py-3 text-xs font-black disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Send WhatsApp Order
-                </button>
-              </div>
-            </div>
+                    <button
+                      onClick={
+                        sendWhatsAppOrder
+                      }
+                      className="btn-primary rounded-full px-6 py-4 text-sm font-black"
+                    >
+                      Order Now
+                    </button>
+                  </div>
+                </footer>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -450,24 +546,26 @@ ${noteLine}`;
   );
 }
 
-function SectionTitle({ number, title }) {
+function Field({
+  icon,
+  placeholder,
+  value,
+  onChange,
+}) {
   return (
-    <div className="mb-3 mt-5 flex items-center gap-3 first:mt-0">
-      <span className="rounded-full border border-theme px-2.5 py-1 text-[10px] font-black text-soft">
-        {number}
+    <div className="flex items-center gap-3 rounded-2xl border border-theme px-4 py-3">
+      <span className="text-soft">
+        {icon}
       </span>
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-soft">
-        {title}
-      </p>
-    </div>
-  );
-}
 
-function FieldShell({ icon, children }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-theme bg-transparent px-4 py-3">
-      <span className="text-sm text-soft">{icon}</span>
-      {children}
+      <input
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        placeholder={placeholder}
+        className="w-full bg-transparent text-sm outline-none placeholder:text-soft"
+      />
     </div>
   );
 }
